@@ -66,7 +66,7 @@ struct face {
     
     //vertices, texture coordinates, and vertex normal face
     face(int v1_, int v2_, int v3_, int tc1_, int tc2_, int tc3_,
-         int vn1_,int vn2_, int vn3_) {
+       int vn1_,int vn2_, int vn3_) {
         v1 = v1_;
         v2 = v2_;
         v3 = v3_;
@@ -121,27 +121,8 @@ Vertex& findNormal(int v1, int v2, int v3) {
     return result;
 }
 
-void DrawWithShader(){
-    shader->Bind();
-    glutSolidTeapot(1.0);
-    shader->UnBind();
-}
+void DrawWithShader() {
 
-void DisplayCallback(){
-//    glClearColor(0.0, 0.0, 0.0, 0.0);
-    
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    
-//    glMatrixMode(GL_MODELVIEW);
-//    glLoadIdentity();
-//    glTranslatef(0.f, 0.f, -10.f);
-    
-    
-//    **** UNCOMMENT ****
-    DrawWithShader();
-    glutSwapBuffers();
-    
-    
     //discards inivisible polygons during rendering
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
@@ -155,19 +136,26 @@ void DisplayCallback(){
     glLightfv(GL_LIGHT0, GL_AMBIENT, light_ambient);
     
     //set material property
-    GLfloat cyan[] = {0.862745f, 0.0784314f, 0.235294f, 1.f};
-    glMaterialfv(GL_FRONT, GL_AMBIENT, cyan);
+    GLfloat red[] = {1.f, 0.f, 0.f, 1.f};
+    glMaterialfv(GL_FRONT, GL_AMBIENT, red);
     
     //set front faces to counterclockwise orientation i.e. front facing
     glFrontFace(GL_CCW);
-    
+
+    shader->Bind();
+    // glutSolidTeapot(1.0);
+
+    //setup uniform data to pass to shaders --> OR USE gl values in .vert
+    // shader->SetUniform //for projection matrix
+    // shader->SetUniform //for modelview matrix
+    // shader->SetUniform //for normal matrix
     
     //points must have z coordinates within the interval [-1 - -5] to be visible
     glBegin(GL_TRIANGLES);
     
     //render faces
     for (int i = 0; i < faceData.size(); ++i) {
-        
+
         face face = faceData[i];
         
         //vertices
@@ -190,9 +178,8 @@ void DisplayCallback(){
         z3 = vertexData[v3].z;
         
         //compute normal
-        Vertex n = findNormal(v1, v2, v3);
-        glNormal3f(n.x, n.y, n.z);
-        
+        // Vertex n = findNormal(v1, v2, v3);
+        // glNormal3f(n.x, n.y, n.z);
         
         //render first vertex
         //plot vertex
@@ -211,6 +198,13 @@ void DisplayCallback(){
     glEnd();
     
     glFlush(); //forces execution, clears buffer
+
+    shader->UnBind();
+}
+
+void DisplayCallback(){
+    DrawWithShader();
+    glutSwapBuffers();
 }
 
 void ReshapeCallback(int w, int h){
@@ -229,46 +223,46 @@ void KeyCallback(unsigned char key, int x, int y)
     switch (key) {
             //i is zoom in
         case 'i':
-            glTranslated(0.0, 0.0, 0.1);
-            break;
-            
+        glTranslated(0.0, 0.0, 0.1);
+        break;
+
             //o is zoom out
         case 'o':
-            glTranslated(0.0, 0.0, -.1);
-            break;
-            
+        glTranslated(0.0, 0.0, -.1);
+        break;
+
             //W, A, Z, S make arrow pad
         case 'w':
-            glTranslated(0.0, 1.0, 0.0);
-            break;
-            
+        glTranslated(0.0, 1.0, 0.0);
+        break;
+
         case 'a':
-            glTranslated(-1.0, 0.0, 0.0);
-            break;
-            
+        glTranslated(-1.0, 0.0, 0.0);
+        break;
+
         case 'z':
-            glTranslated(0.0, -1.0, 0.0);
-            break;
-            
+        glTranslated(0.0, -1.0, 0.0);
+        break;
+
         case 's':
-            glTranslated(1.0, 0.0, 0.0);
-            break;
-            
+        glTranslated(1.0, 0.0, 0.0);
+        break;
+
             //r for rotate right
         case 'r':
-            glRotated(5.0, 0.0, 0.0, 10.0);
-            break;
-            
+        glRotated(5.0, 0.0, 0.0, 10.0);
+        break;
+
             //l for rotate left
         case 'l':
-            glRotated(-5.0, 0.0, 0.0, 10.0);
-            break;
+        glRotated(-5.0, 0.0, 0.0, 10.0);
+        break;
     }
     glutPostRedisplay();
 }
 
 void orbit(int button, int state, int x, int y) {
-    
+
     theta += (x-oldX)*0.0001f;
     phi   += (y-oldY)*0.0001f;
     
@@ -299,10 +293,8 @@ void Setup(const char* fileName)
     //sets the camera center at (0, 0, 0), looking down at (0, 0, -1) --> negative z-axis
     gluLookAt(0,0,0,0,0,-1,0,1,0);
     
-    
     shader = new SimpleShaderProgram();
     shader->LoadVertexShader(vertexShader);
-    cout << "here" << endl;
     shader->LoadFragmentShader(fragmentShader);
     glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
     glEnable(GL_DEPTH_TEST);
@@ -435,6 +427,12 @@ void Setup(const char* fileName)
         //ignore all other lines including comments and vertex normal data
         else { }
     }
+
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    glTranslatef(0.f, 0.f, -10.f);
 }
 
 int main(int argc, char** argv){
@@ -461,12 +459,12 @@ int main(int argc, char** argv){
     glewInit();
     if(!GLEW_VERSION_2_0) {
         printf("Your graphics card or graphics driver does\n"
-               "\tnot support OpenGL 2.0, trying ARB extensions\n");
+         "\tnot support OpenGL 2.0, trying ARB extensions\n");
         
         if(!GLEW_ARB_vertex_shader || !GLEW_ARB_fragment_shader) {
             printf("ARB extensions don't work either.\n");
             printf("\tYou can try updating your graphics drivers.\n"
-                   "\tIf that does not work, you will have to find\n");
+             "\tIf that does not work, you will have to find\n");
             printf("\ta machine with a newer graphics card.\n");
             exit(1);
         }
@@ -484,3 +482,103 @@ int main(int argc, char** argv){
     glutMainLoop();
     return 0;
 }
+
+
+// phong.vert before uniform data
+// /*3 component vector for x, y, z coordinates of vertex position and normal
+//  * attribute denotes parameters passed to this shader which will be provided PER vertex i.e. many times during a rendering call
+//  */
+// attribute vec3 position;
+// attribute vec3 normal;
+
+// /*4x4 matrices for projection, modelview, and normal
+//  * uniform denotes parameters that are passed to this shader program. these will not change from one execution of this shader to the next within the same rendering call
+//  */
+// //uniform mat4 projection, modelview, normalMatrix;
+// //THESE SHOULD BE gl_ProjectionMatrix, etc.
+
+// /* global variables to be defined and passed to frag shader
+// * varying denotes parameters that provide an interface between vert and frag shader i.e. vert shader passes these variables to frag shader */
+// varying vec3 color;
+
+// /* define vertex position and the interpolated normal */
+// vec3 vertexPosition;
+// vec3 normalInterpolated;
+
+// /* define light position and 3 types of color for Phong model */
+// vec3 lightPosition = vec3(0.0, 0.0, -.5);
+// vec3 ambientColor = vec3(0.1, 0.0, 0.0); //light red for ambient color
+// vec3 diffuseColor = vec3(1.0, 0.0, 0.0); //red color for diffuse color
+// vec3 specularColor = vec3(1.0, 1.0, 1.0); //white color for specular reflection
+
+// //set the shineness of our scene
+// float shine = 16.0;
+
+// void main()
+// {
+//     // homogenize vertex position using vec4 constructor with w=1.0
+//     vec4 inputPositionH = vec4(position, 1.0);
+    
+//     //position vector with model view -- homogenized
+//     vec4 vertexPositionH = modelview*inputPositionH;
+    
+//     // calculate position with projection, modelview and homogenized coordinate for vector
+//     gl_Position = projection*modelview*inputPositionH;
+    
+//     /*calculate interpolated normal vector
+//     * dehomogenize the vector from construction vec3 from the normal matrix with a w=0.0 value
+//     */
+//     vec4 normalDH = vec4(normal, 0.0);
+//     normalInterpolated = vec3(normalMatrix*normalDH);
+
+//         //let's normalize our interpolated normal vector first using OpenGL's normalize method
+//     vec3 normal = normalize(normalInterpolated);
+    
+//     /* we can calculate the direction of the light by normalizing the difference between the light
+//      * position and the vertex position
+//      */
+//     vec3 lightDirection = normalize(lightPosition - vertexPosition);
+    
+//     /* next we need to calculate the lambertian reflectance:
+//      * this number defines the diffusely reflecting surface. 
+//      * Note that the apparent brightness is the same regardless
+//      * of the observer's angle of view. We can calculate this by
+//      * taking the dot product of the of the lightDirection and
+//      * the normal vector. Further, we must clamp this dot product
+//      * because they may be negative, which we can do with the max() method
+//      */
+//     float lambertian = dot(lightDirection, normal); //calculate the lambertian reflectance
+//     lambertian = max(lambertian, 0.0); //this clamps the value if it is negative
+    
+//     //set the default specular value to 0
+//     float specular = 0.0;
+    
+//     /* a lambertian value greater than 0 implies that this fragment has some
+//      * reflection from our light source
+//      */
+//     if (lambertian > 0.0) {
+//         //calculate V, the normalized direction from the point on the surface towards the viewer
+//         vec3 viewingDirection = normalize(-vertexPosition);
+        
+//             /* first calculate R, the normalized direction to which a light ray
+//              * from the light source to this surface point would reflect. We can
+//              * use the reflect() method with both L (light direction) and N (normal vector)
+//              * to find R (reflection)
+//              */
+//             vec3 R = reflect(-lightDirection, normal);
+            
+//             /* now we need to compute the specular angle. The dot product of R (reflection) and the
+//              * viewing direction. Again, this dot product must be campled because it may be negative
+//              */
+//             float specularAngle = dot(R, viewingDirection); //calculate specular angle
+//             specularAngle = max(specularAngle, 0.0); //this clamps the value if it is negative
+            
+//             /* we can now use the specularAngle and our preset shine float to calculate specular
+//              * in the equation this is (R*V)^shine
+//              */
+//             specular = pow(specularAngle, shine/4.0); //could divide shine by 4 ***********
+//         }
+    
+//     // now we can determine the color using all of our calculated values for Phong modeling
+//     color = ambientColor + (lambertian*diffuseColor) + (specular*specularColor);
+// }

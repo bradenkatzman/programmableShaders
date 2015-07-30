@@ -1,33 +1,67 @@
-/*3 component vector for x, y, z coordinates of vertex position and normal
- * attribute denotes parameters passed to this shader which will be provided PER vertex i.e. many times during a rendering call
- */
-attribute vec3 position;
-attribute vec3 normal;
 
-/*4x4 matrices for projection, modelview, and normal
- * uniform denotes parameters that are passed to this shader program. these will not change from one execution of this shader to the next within the same rendering call
- */
-uniform mat4 projection, modelview, normalMatrix;
+//varying means this will be passed to .frag
+varying vec3 color;
 
-/* global variables to be defined and passed to frag shader
-* varying denotes parameters that provide an interface between vert and frag shader i.e. vert shader passes these variables to frag shader */
-varying vec3 vertexPosition
-varying vec3 normalInterpolated;
+// define light position
+vec3 lightPosition = vec3(0.0, 0.0, -.5);
+
+//define ambient, diffuse, and specular illuminations
+vec3 ambientIll = vec3(0.1, 0.0, 0.0); //light red for ambient color
+vec3 diffuseIll = vec3(1.0, 0.0, 0.0); //red color for diffuse color
+vec3 specularIll = vec3(1.0, 1.0, 1.0); //white color for specular reflection
+
+//define ambient, diffure, and specular colors
+vec3 ambientColor = vec3(0.8, 0.0, 0.0); //reddish
+vec3 diffuseColor = vec3(0.8, 0.0, 0.0); //reddish
+vec3 specularColor = vec3(1.0, 1.0, 1.0); //white
+
+//set the shineness of our scene
+float shine = 16.0;
+
+vec3 L; //normalized vector from surface point to light source
+vec3 V; //normalized direction from point on surface toward viewer
+vec3 R; //normalized direction to which a light ray from the light source would reflect
 
 void main()
-{
-    // homogenize vertex position using vec4 constructor with w=1.0
-    vec4 inputPositionH(position, 1.0);
+{    
+    gl_Position = gl_ProjectionMatrix*gl_ModelViewMatrix*gl_Vertex;
     
-    //position vector with model view -- homogenized
-    vec4 vertexPositionH = modelview*inputPositionH;
+    //why this???
+    vec3 normalInterpolated = vec3(gl_NormalMatrix*gl_Normal);
+
+    vec3 normal = normalize(normalInterpolated);
     
-    // calculate position with projection, modelview and homogenized coordinate for vector
-    gl_Position = projection*modelview*inputPositionH;
+/* direction of the light by normalizing the difference between the light position and the vertex position */
+    L = normalize(lightPosition - gl_Vertex.xyz); 
+    /* but these are vec3 and vec4 -- how do I make gl_Vertex a v3 */
     
-    /*calculate interpolated normal vector
-    * dehomogenize the vector from construction vec3 from the normal matrix with a w=0.0 value
-    */
-    vec4 normalDH(normal*, 0.0);
-    normalInterpolated = vec3(normalMatrix*normalDH);
+    float lambertian = dot(L, normal); 
+    /* calculate the lambertian reflectance*/
+
+    lambertian = max(lambertian, 0.0); /*this clamps the value if it is negative*/
+    
+    /*set the default specular value to 0*/
+    float specular = 0.0;
+    
+/* a lambertian value greater than 0 implies that this fragment has some
+* reflection from our light source
+*/
+    if (lambertian > 0.0) {
+        V = normalize(-gl_Vertex.xyz);
+        
+/* can use the reflect() method with both L (light direction) and N (normal vector)
+* to find R (reflection) */
+            R = reflect(-L, normal);
+            
+/* now we need to compute the specular angle. The dot product of R and the
+viewing direction*/
+            float specularAngle = dot(R, V);
+
+            specularAngle = max(specularAngle, 0.0);
+            
+            specular = pow(specularAngle, shine);
+        }
+    
+    /* now we can determine the color using all of our calculated values for Phong * modeling */
+    color = ambientColor*ambientIll + (lambertian*(diffuseColor*diffuseIll)) + (specular*(specularColor*specularIll));
 }
