@@ -26,11 +26,8 @@ SimpleShaderProgram *shader;
 
 using namespace std;
 
-//global color variable for uniform vertex variable
-std::string color;
 
-//camera change variable for uniform variable
-float shine = 16.0;
+using namespace std;
 
 struct Vertex {
     float x, y, z;
@@ -152,39 +149,6 @@ void DrawWithShader() {
     glFrontFace(GL_CCW);
 
     shader->Bind();
-
-    if (color.compare("green") == 0) {
-        shader->SetUniform("rColor", 0.0);
-        shader->SetUniform("gColor", 0.8);
-        shader->SetUniform("bColor", 0.0);
-
-    }
-    else if (color.compare("red") == 0) {
-        shader->SetUniform("rColor", 0.8);
-        shader->SetUniform("gColor", 0.0);
-        shader->SetUniform("bColor", 0.0);
-
-    }
-    else if (color.compare("blue") == 0) {
-        shader->SetUniform("rColor", 0.0);
-        shader->SetUniform("gColor", 0.0);
-        shader->SetUniform("bColor", 0.8);
-
-    }
-    else if (color.compare("limegreen") == 0) {
-        shader->SetUniform("rColor", 0.603);
-        shader->SetUniform("gColor", 0.803);
-        shader->SetUniform("bColor", 0.1960);
-
-    }
-    else {
-        shader->SetUniform("rColor", 0.5);
-        shader->SetUniform("gColor", 0.5);
-        shader->SetUniform("bColor", 0.5);
-
-    }
-
-    shader->SetUniform("shine", shine);
     
     //points must have z coordinates within the interval [-1 - -5] to be visible
     glBegin(GL_TRIANGLES);
@@ -288,14 +252,6 @@ void KeyCallback(unsigned char key, int x, int y)
             //l for rotate left
         case 'l':
         glRotated(-5.0, 0.0, 0.0, 10.0);
-        break;
-
-        case 'n':
-        shine -= 1.0f;
-        break;
-
-        case 'm':
-        shine += 1.0f;
         break;
     }
     glutPostRedisplay();
@@ -476,14 +432,13 @@ void Setup(const char* fileName)
 }
 
 int main(int argc, char** argv){
-    if(!(argc == 5)){
-        printf("usage: ./hw5 <obj file> <vertex shader> <fragment shader> <color>\n");
+    if(!(argc == 4)){
+        printf("usage: ./hw5 <obj file> <vertex shader> <fragment shader> \n");
         return 0;
     }
     
     vertexShader   = std::string(argv[2]);
     fragmentShader = std::string(argv[3]);
-    color = std::string(argv[4]);
     
     // Initialize GLUT.
     glutInit(&argc, argv);
