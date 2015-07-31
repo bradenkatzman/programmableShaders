@@ -29,8 +29,11 @@ using namespace std;
 //global color variable for uniform vertex variable
 std::string color;
 
-//camera change variable for uniform variable
+//global shine factor
 float shine = 16.0;
+
+//global stretch factor
+float stretch = 1.0f;
 
 struct Vertex {
     float x, y, z;
@@ -185,6 +188,7 @@ void DrawWithShader() {
     }
 
     shader->SetUniform("shine", shine);
+    shader->SetUniform("stretchF", stretch);
     
     //points must have z coordinates within the interval [-1 - -5] to be visible
     glBegin(GL_TRIANGLES);
@@ -296,6 +300,14 @@ void KeyCallback(unsigned char key, int x, int y)
 
         case 'm':
         shine += 1.0f;
+        break;
+
+        case '1':
+        stretch -= 0.1f;
+        break;
+
+        case '2':
+        stretch += 0.1f;
         break;
     }
     glutPostRedisplay();

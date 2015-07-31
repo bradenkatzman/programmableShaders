@@ -4,7 +4,11 @@ uniform float rColor;
 uniform float gColor;
 uniform float bColor;
 
+//shine factor
 uniform float shine;
+
+//strech factor
+uniform float stretchF;
 
 //varying means this will be passed to .frag
 varying vec3 color;
@@ -22,16 +26,14 @@ vec3 ambientColor = vec3(rColor, gColor, bColor); //reddish
 vec3 diffuseColor = vec3(rColor, gColor, bColor); //reddish
 vec3 specularColor = vec3(1.0, 1.0, 1.0); //white
 
-//set the shineness of our scene
-//float shine;
-
+vec4 stretch = vec4(1.0, stretchF, 1.0, 1.0);
 vec3 L; //normalized vector from surface point to light source
 vec3 V; //normalized direction from point on surface toward viewer
 vec3 R; //normalized direction to which a light ray from the light source would reflect
 
 void main()
 {    
-    gl_Position = gl_ProjectionMatrix*gl_ModelViewMatrix*gl_Vertex;
+    gl_Position = gl_ProjectionMatrix*gl_ModelViewMatrix*gl_Vertex*stretch;
     
     vec3 normalInterpolated = vec3(gl_NormalMatrix*gl_Normal);
 
@@ -39,7 +41,6 @@ void main()
     
 /* direction of the light by normalizing the difference between the light position and the vertex position */
     L = normalize(lightPosition - gl_Vertex.xyz); 
-    /* but these are vec3 and vec4 -- how do I make gl_Vertex a v3 */
     
     float lambertian = dot(L, normal); 
     /* calculate the lambertian reflectance*/
@@ -71,18 +72,3 @@ viewing direction*/
     /* now we can determine the color using all of our calculated values for Phong * modeling */
     color = ambientColor*ambientIll + (lambertian*(diffuseColor*diffuseIll)) + (specular*(specularColor*specularIll));
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
