@@ -123,6 +123,12 @@ Vertex& findNormal(int v1, int v2, int v3) {
 
 void DrawWithShader() {
 
+    glClearColor(0.0, 0.0, 0.0, 0.0);
+    
+    glEnable(GL_DEPTH_TEST);
+    
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
     //discards inivisible polygons during rendering
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
@@ -143,12 +149,6 @@ void DrawWithShader() {
     glFrontFace(GL_CCW);
 
     shader->Bind();
-    // glutSolidTeapot(1.0);
-
-    //setup uniform data to pass to shaders --> OR USE gl values in .vert
-    // shader->SetUniform //for projection matrix
-    // shader->SetUniform //for modelview matrix
-    // shader->SetUniform //for normal matrix
     
     //points must have z coordinates within the interval [-1 - -5] to be visible
     glBegin(GL_TRIANGLES);
@@ -176,10 +176,6 @@ void DrawWithShader() {
         x3 = vertexData[v3].x;
         y3 = vertexData[v3].y;
         z3 = vertexData[v3].z;
-        
-        //compute normal
-        // Vertex n = findNormal(v1, v2, v3);
-        // glNormal3f(n.x, n.y, n.z);
         
         //render first vertex
         //plot vertex
